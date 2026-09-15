@@ -10,5 +10,6 @@ SLIDER_HANDLE_COLOR = (200,200,200) #gris clair
 INPUT_BG_COLOR = (45,45,45) #gris très foncé
 INPUT_BORDER_COLOR = (100,100,100) #gris moyen (inactif)
 INPUT_BORDER_ACTIVE_COLOR = (0,180,0) #vert (actif, focus)
+INPUT_BORDER_INVALID_COLOR = (200,0,0) #rouge (saisie invalide)
 PLACEHOLDER_COLOR = (140,140,140) #gris clair (texte d'exemple)
 HINT_COLOR = (160,160,160) #gris clair (texte d'aide)
