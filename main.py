@@ -70,14 +70,28 @@ def on_start_click():
     print(f"  - Points du mur : {wall_points_input.get_value()}")
     print(f"  - Formule : {formula_input.get_value()}")
 
+def on_reset_click():
+    # US 1.8 : restaure tous les paramètres à leurs valeurs par défaut
+    for slider in sliders:
+        slider.reset()
+    for text_input in text_inputs:
+        text_input.reset()
 
-# Activé dès le départ car rien, pour l'instant, ne peut rendre la config invalide
-# (US 1.7 branchera plus tard enabled sur la validité réelle des champs)
+
+# L'état du bouton est recalculé à chaque frame dans la boucle principale
+# en fonction de la validité des champs (US 1.7).
 start_button = Button(
-    x=565, y=480, width=150, height=50,
+    x=645, y=480, width=105, height=50,
     text="Démarrer",
-    enabled=False,  # sera mis à jour dans la boucle principale
+    enabled=False,
     on_click=on_start_click,
+)
+
+reset_button = Button(
+    x=530, y=480, width=105, height=50,
+    text="Réinitialiser",
+    enabled=True,   # toujours cliquable (US 1.8)
+    on_click=on_reset_click,
 )
 
 # --- Boucle principale ---
@@ -95,6 +109,7 @@ while running:
             text_input.handle_event(event)
 
         start_button.handle_event(event)
+        reset_button.handle_event(event)
 
     screen.fill((30, 30, 30))  # fond gris foncé
 
@@ -105,6 +120,7 @@ while running:
         text_input.draw(screen)
 
     start_button.draw(screen)
+    reset_button.draw(screen)
 
     pygame.display.flip()
     clock.tick(FPS)

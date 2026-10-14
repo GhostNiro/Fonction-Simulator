@@ -35,7 +35,8 @@ class TextInput:
         self.numbers_only = numbers_only
         self.required = required
         self.max_value = max_value
-        self.text = default_value
+        self.default_value = default_value
+        self.text = self.default_value
         self.active = False
 
         self.label_font = pygame.font.Font(None, 26)
@@ -90,6 +91,10 @@ class TextInput:
 
     def get_value(self):
         return self.text
+
+    def reset(self):
+        self.text = self.default_value
+        self.active = False
 
     def draw(self, surface):
         # Label au-dessus du champ

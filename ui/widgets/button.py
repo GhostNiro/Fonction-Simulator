@@ -9,7 +9,18 @@ class Button :
         self.text = text
         self.on_click = on_click
         self.enabled = enabled
-        self.font = pygame.font.Font(None, 36)
+        self.font = self._fit_font(self.text, self.width - 12, self.height - 8)
+
+    @staticmethod
+    def _fit_font(text, max_width, max_height):
+        """Retourne la plus grande police (14..36) dont le rendu du texte
+        tient dans max_width x max_height."""
+        for size in range(36, 13, -1):
+            font = pygame.font.Font(None, size)
+            w, h = font.size(text)
+            if w <= max_width and h <= max_height:
+                return font
+        return pygame.font.Font(None, 14)
 
     def get_rect(self):
         return pygame.Rect(self.x, self.y, self.width, self.height)
