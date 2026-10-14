@@ -13,16 +13,18 @@ from config.settings import (
 class TextInput:
     """
     Champ de texte basique : cliquable, capture la saisie clavier.
-    Si numbers_only=True, seuls les chiffres sont acceptés à la saisie,
-    et is_valid() vérifie qu'il y a bien une valeur strictement positive
-    (US 1.5 : pas de champ vide, pas de zéro).
-    Pour un champ libre (numbers_only=False, ex. la formule), is_valid()
-    retourne toujours True pour l'instant — sa validation viendra dans
-    une US dédiée (Epic 5).
+
+    - numbers_only=True : seuls les chiffres sont acceptés à la saisie.
+    - required=True (défaut) : un champ vide est considéré comme invalide.
+    - max_value : plafond optionnel. Si la saisie dépasse cette valeur,
+      elle est automatiquement ramenée à max_value (US 1.7).
+
+    is_valid() et get_error_message() partagent la même source de vérité :
+    is_valid() == (get_error_message() is None).
     """
 
     def __init__(self, x, y, width, height, label="", placeholder="", hint="",
-                 numbers_only=False, default_value=""):
+                 numbers_only=False, default_value="", required=True, max_value=None):
         self.x = x
         self.y = y
         self.width = width
@@ -31,6 +33,8 @@ class TextInput:
         self.placeholder = placeholder
         self.hint = hint  # peut contenir des retours à la ligne "\n"
         self.numbers_only = numbers_only
+        self.required = required
+        self.max_value = max_value
         self.text = default_value
         self.active = False
 
@@ -41,35 +45,54 @@ class TextInput:
     def get_rect(self):
         return pygame.Rect(self.x, self.y, self.width, self.height)
 
+    def get_error_message(self):
+        """Retourne None si le champ est valide, sinon un message clair."""
+        if self.text == "":
+            if self.required:
+                return "Ce champ est obligatoire"
+            return None
+
+        if self.numbers_only:
+            # Grâce au filtre à la saisie, self.text ne contient que des chiffres.
+            value = int(self.text)
+            if value <= 0:
+                return "Doit être un entier strictement positif"
+            if self.max_value is not None and value > self.max_value:
+                return f"Ne peut pas dépasser {self.max_value}"
+
+        return None
+
     def is_valid(self):
-        if not self.numbers_only:
-            return True
-        # Grâce au filtre à la saisie, self.text ne peut contenir que des
-        # chiffres (0-9) ou être vide : int() ne peut donc pas planter ici.
-        return self.text != "" and int(self.text) > 0
+        return self.get_error_message() is None
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # Actif si on clique dedans, inactif si on clique ailleurs
             self.active = self.get_rect().collidepoint(event.pos)
 
         elif event.type == pygame.KEYDOWN and self.active:
             if event.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
             elif event.key == pygame.K_RETURN:
-                self.active = False  # on considère la saisie "validée" (pour l'instant, juste désactivée)
+                self.active = False
 
         elif event.type == pygame.TEXTINPUT and self.active:
-            # Événement pygame dédié à la saisie de texte (gère les caractères correctement)
-            if self.numbers_only and not event.text.isnumeric():
+            if self.numbers_only and not event.text.isdecimal():
                 return  # caractère refusé, on ignore silencieusement
-            self.text += event.text
+
+            new_text = self.text + event.text
+
+            # Plafond : si la saisie dépasse max_value, on la ramène à max_value.
+            if self.numbers_only and self.max_value is not None and new_text != "":
+                if int(new_text) > self.max_value:
+                    new_text = str(self.max_value)
+
+            self.text = new_text
 
     def get_value(self):
         return self.text
 
     def draw(self, surface):
-        # Label au-dessus du champ (ex. "Formule (en x)")
+        # Label au-dessus du champ
         if self.label:
             label_surface = self.label_font.render(self.label, True, TEXT_COLOR)
             surface.blit(label_surface, (self.x, self.y - label_surface.get_height() - 5))
@@ -93,15 +116,11 @@ class TextInput:
 
         text_surface = self.text_font.render(display_text, True, color)
 
-        # Défilement horizontal : si le texte est plus large que la zone
-        # visible, on décale vers la gauche pour garder la FIN du texte
-        # visible (c'est là que l'utilisateur tape/efface en ce moment).
-        visible_width = self.width - 16  # marge de 8px de chaque côté
+        # Défilement horizontal pour garder la FIN du texte visible
+        visible_width = self.width - 16
         text_width = text_surface.get_width()
         offset_x = max(0, text_width - visible_width)
 
-        # On restreint temporairement la zone de dessin au cadre du champ,
-        # pour que le texte décalé ne déborde jamais visuellement dessus.
         previous_clip = surface.get_clip()
         surface.set_clip(self.get_rect())
         surface.blit(
@@ -110,8 +129,12 @@ class TextInput:
         )
         surface.set_clip(previous_clip)
 
-        # Texte d'aide sous le champ, potentiellement multi-lignes
-        if self.hint:
+        # Message d'erreur en priorité ; sinon, texte d'aide (multi-lignes)
+        error = self.get_error_message()
+        if error:
+            error_surface = self.hint_font.render(error, True, INPUT_BORDER_INVALID_COLOR)
+            surface.blit(error_surface, (self.x, self.y + self.height + 6))
+        elif self.hint:
             for i, line in enumerate(self.hint.split("\n")):
                 hint_surface = self.hint_font.render(line, True, HINT_COLOR)
                 surface.blit(

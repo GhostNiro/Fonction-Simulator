@@ -1,5 +1,5 @@
 import pygame
-from config.settings import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, FPS
+from config.settings import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, FPS, MAX_WALL_POINTS
 from ui.widgets.slider import Slider
 from ui.widgets.button import Button
 from ui.widgets.text_input import TextInput
@@ -46,6 +46,7 @@ wall_points_input = TextInput(
     numbers_only=True,
     default_value="100",
     hint="nombre entier positif (pas de 0)",
+    max_value=MAX_WALL_POINTS,
 )
 
 # Champ de saisie de la formule (US 1.6). Pas de validation ni de menu
@@ -75,13 +76,14 @@ def on_start_click():
 start_button = Button(
     x=565, y=480, width=150, height=50,
     text="Démarrer",
-    enabled=True,
+    enabled=False,  # sera mis à jour dans la boucle principale
     on_click=on_start_click,
 )
 
 # --- Boucle principale ---
 running = True
 while running:
+    start_button.enabled = all(ti.is_valid() for ti in text_inputs)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False

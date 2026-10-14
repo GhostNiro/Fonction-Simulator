@@ -13,3 +13,4 @@ INPUT_BORDER_ACTIVE_COLOR = (0,180,0) #vert (actif, focus)
 INPUT_BORDER_INVALID_COLOR = (200,0,0) #rouge (saisie invalide)
 PLACEHOLDER_COLOR = (140,140,140) #gris clair (texte d'exemple)
 HINT_COLOR = (160,160,160) #gris clair (texte d'aide)
+MAX_WALL_POINTS = 10**12  # 1 trillion
