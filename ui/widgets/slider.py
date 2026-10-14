@@ -12,8 +12,8 @@ class Slider:
         self.min_value = min_value
         self.max_value = max_value
         self.step = step
-        self.value = default_value if default_value is not None else min_value
- 
+        self.default_value = default_value if default_value is not None else min_value
+        self.value = self.default_value 
         self.handle_width = 20
         self.handle_height = 30
         self.dragging = False
@@ -55,6 +55,9 @@ class Slider:
  
     def get_value(self):
         return self.value
+
+    def reset(self):
+        self.value = self.default_value
  
     def draw(self, surface):
         # Barre du slider
