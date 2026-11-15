@@ -12,3 +12,8 @@ class Ball:
     def apply_gravity(self, dt):
         """dt = temps écoulé en secondes depuis la dernière frame."""
         self.vy += GRAVITY * dt
+
+    def move(self, dt):
+        """Déplace la balle selon sa vitesse (px/s) pendant dt secondes."""
+        self.x += self.vx * dt
+        self.y += self.vy * dt
