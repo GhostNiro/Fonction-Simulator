@@ -10,3 +10,10 @@ def bounce_left(ball, arena):
     if ball.x - ball.radius < arena.left and ball.vx < 0:
         ball.x = arena.left + ball.radius
         ball.vx = -ball.vx
+
+
+def bounce_right(ball, arena):
+    """Rebond parfait sur le mur de droite."""
+    if ball.x + ball.radius > arena.right and ball.vx > 0:
+        ball.x = arena.right - ball.radius
+        ball.vx = -ball.vx
