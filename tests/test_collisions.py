@@ -1,6 +1,6 @@
 from entities.arena import Arena
 from entities.ball import Ball
-from physics.collisions import bounce_top
+from physics.collisions import bounce_left, bounce_top
 
 ARENA = Arena(20, 20, 460, 660)  # mur du haut à y = 20
 
@@ -35,3 +35,35 @@ def test_ball_never_leaks_through_top_at_high_speed():
     bounce_top(ball, ARENA)
     assert ball.y - ball.radius >= ARENA.top
     assert ball.vy > 0
+
+
+def test_bounce_left_reverses_horizontal_speed():
+    ball = Ball(25, 200, 10, vx=-100, vy=30)  # bord gauche à 15, dans le mur
+    bounce_left(ball, ARENA)
+    assert ball.vx == 100
+    assert ball.vy == 30
+
+
+def test_bounce_left_puts_ball_back_inside():
+    ball = Ball(25, 200, 10, vx=-100)
+    bounce_left(ball, ARENA)
+    assert ball.x == 30  # arena.left + radius
+
+
+def test_no_bounce_left_when_not_touching():
+    ball = Ball(200, 200, 10, vx=-100)
+    bounce_left(ball, ARENA)
+    assert (ball.x, ball.vx) == (200, -100)
+
+
+def test_no_double_bounce_left_when_already_moving_right():
+    ball = Ball(25, 200, 10, vx=100)
+    bounce_left(ball, ARENA)
+    assert ball.vx == 100
+
+
+def test_ball_never_leaks_through_left_at_high_speed():
+    ball = Ball(-500, 200, 10, vx=-5000)
+    bounce_left(ball, ARENA)
+    assert ball.x - ball.radius >= ARENA.left
+    assert ball.vx > 0
