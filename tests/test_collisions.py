@@ -1,3 +1,4 @@
+from config.settings import RESTITUTION
 from entities.arena import Arena
 from entities.ball import Ball
 from physics.collisions import bounce_left, bounce_right, bounce_top
@@ -99,3 +100,19 @@ def test_ball_never_leaks_through_right_at_high_speed():
     bounce_right(ball, ARENA)
     assert ball.x + ball.radius <= ARENA.right
     assert ball.vx < 0
+
+
+def test_restitution_is_perfect():
+    assert RESTITUTION == 1.0
+
+
+def test_perfect_bounces_keep_speed_over_many_bounces():
+    ball = Ball(100, 200, 10, vx=300, vy=40)
+    for _ in range(5000):
+        ball.move(1 / 60)
+        bounce_left(ball, ARENA)
+        bounce_right(ball, ARENA)
+        assert ball.x - ball.radius >= ARENA.left
+        assert ball.x + ball.radius <= ARENA.right
+    assert abs(ball.vx) == 300
+    assert ball.vy == 40
