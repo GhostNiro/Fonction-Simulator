@@ -1,7 +1,7 @@
 from config.settings import RESTITUTION
 from entities.arena import Arena
 from entities.ball import Ball
-from physics.collisions import bounce_left, bounce_right, bounce_top
+from physics.collisions import bounce_left, bounce_right, bounce_top, hits_bottom
 
 ARENA = Arena(20, 20, 460, 660)  # mur du haut à y = 20
 
@@ -116,3 +116,30 @@ def test_perfect_bounces_keep_speed_over_many_bounces():
         assert ball.x + ball.radius <= ARENA.right
     assert abs(ball.vx) == 300
     assert ball.vy == 40
+
+
+def test_hits_bottom_when_touching_and_moving_down():
+    ball = Ball(100, 675, 10, vy=100)  # bord bas à 685, mur du bas à 680
+    assert hits_bottom(ball, ARENA)
+
+
+def test_no_hit_when_not_touching():
+    ball = Ball(100, 500, 10, vy=100)
+    assert not hits_bottom(ball, ARENA)
+
+
+def test_no_hit_when_moving_up():
+    ball = Ball(100, 675, 10, vy=-100)
+    assert not hits_bottom(ball, ARENA)
+
+
+def test_hit_counted_once_per_impact():
+    ball = Ball(100, 675, 10, vy=100)
+    assert hits_bottom(ball, ARENA)
+    ball.vy = -ball.vy  # ce que fera le rebond (US 4.2)
+    assert not hits_bottom(ball, ARENA)
+
+
+def test_hit_detected_at_high_speed():
+    ball = Ball(100, 5000, 10, vy=5000)
+    assert hits_bottom(ball, ARENA)

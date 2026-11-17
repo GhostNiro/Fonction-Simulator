@@ -20,3 +20,8 @@ def bounce_right(ball, arena):
     if ball.x + ball.radius > arena.right and ball.vx > 0:
         ball.x = arena.right - ball.radius
         ball.vx = -ball.vx * RESTITUTION
+
+
+def hits_bottom(ball, arena):
+    """True si la balle descend et touche le mur du bas (compté une fois par impact)."""
+    return ball.y + ball.radius > arena.bottom and ball.vy > 0
