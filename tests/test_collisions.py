@@ -1,7 +1,9 @@
 from config.settings import RESTITUTION
 from entities.arena import Arena
 from entities.ball import Ball
-from physics.collisions import bounce_left, bounce_right, bounce_top, hits_bottom
+from physics.collisions import (
+    bounce_bottom, bounce_left, bounce_right, bounce_top, hits_bottom,
+)
 
 ARENA = Arena(20, 20, 460, 660)  # mur du haut à y = 20
 
@@ -13,10 +15,10 @@ def test_bounce_top_reverses_vertical_speed():
     assert ball.vx == 30
 
 
-def test_bounce_top_puts_ball_back_inside():
-    ball = Ball(100, 25, 10, vy=-100)
+def test_bounce_top_reflects_position():
+    ball = Ball(100, 25, 10, vy=-100)  # dépasse la limite (30) de 5 px
     bounce_top(ball, ARENA)
-    assert ball.y == 30  # arena.top + radius
+    assert ball.y == 35  # réfléchie : 5 px de l'autre côté de la limite
 
 
 def test_no_bounce_when_not_touching():
@@ -143,3 +145,54 @@ def test_hit_counted_once_per_impact():
 def test_hit_detected_at_high_speed():
     ball = Ball(100, 5000, 10, vy=5000)
     assert hits_bottom(ball, ARENA)
+
+
+def test_bounce_bottom_reverses_vertical_speed():
+    ball = Ball(100, 675, 10, vx=30, vy=100)
+    bounce_bottom(ball, ARENA)
+    assert ball.vy == -100
+    assert ball.vx == 30
+
+
+def test_bounce_bottom_reflects_position():
+    ball = Ball(100, 675, 10, vy=100)  # dépasse la limite (670) de 5 px
+    bounce_bottom(ball, ARENA)
+    assert ball.y == 665
+    assert ball.y + ball.radius <= ARENA.bottom
+
+
+def test_bounce_bottom_returns_true_only_on_impact():
+    hit = Ball(100, 675, 10, vy=100)
+    miss = Ball(100, 500, 10, vy=100)
+    assert bounce_bottom(hit, ARENA) is True
+    assert bounce_bottom(miss, ARENA) is False
+    assert (miss.y, miss.vy) == (500, 100)
+
+
+def test_no_double_bounce_bottom_when_already_moving_up():
+    ball = Ball(100, 675, 10, vy=-100)
+    assert bounce_bottom(ball, ARENA) is False
+    assert ball.vy == -100
+
+
+def test_bounce_bottom_deep_overshoot_ends_inside_moving_up():
+    ball = Ball(100, 800, 10, vy=3000)
+    bounce_bottom(ball, ARENA)
+    assert ball.y + ball.radius <= ARENA.bottom
+    assert ball.vy < 0
+
+
+def test_bouncing_on_floor_never_gains_energy_nor_loses_much():
+    ball = Ball(100, 300, 10)
+    dt = 1 / 60
+    peaks, highest = [], ball.y
+    for _ in range(20000):
+        ball.apply_gravity(dt)
+        ball.move(dt)
+        highest = min(highest, ball.y)
+        if bounce_bottom(ball, ARENA):
+            peaks.append(highest)
+            highest = ball.y
+    assert len(peaks) > 100
+    assert min(peaks) >= 299   # ne remonte jamais plus haut que le départ
+    assert max(peaks) <= 315   # ne perd presque rien
