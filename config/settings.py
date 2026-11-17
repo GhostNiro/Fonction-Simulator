@@ -21,3 +21,5 @@ ARENA_X = 20
 ARENA_Y = 20
 ARENA_WIDTH = 460
 ARENA_HEIGHT = 660
+
+RESTITUTION = 1.0  # 1 = rebond parfait, aucune perte d'énergie
