@@ -20,6 +20,7 @@ GRAVITY = 900  # px/s² (accélération vers le bas)
 ARENA_X = 20
 ARENA_Y = 20
 ARENA_WIDTH = 460
-ARENA_HEIGHT = 660
+ARENA_HEIGHT = 630
 
 RESTITUTION = 1.0  # 1 = rebond parfait, aucune perte d'énergie
+WALL_THICKNESS = 30  # bande du mur du bas, sous la zone de rebond (px)
